@@ -71,25 +71,21 @@ def get_workout_info(workout_link):
 def create_update_workout_list():
     workout_links = get_darebee_links(DAREBEE_BASE_URL + "/wods.html")
     darebee_file_exists = os.path.isfile(DAREBEE_FILE_NAME)
-    headers = ["Workout Name","Workout Page URL","Focus","Difficulty",
-           "Works","PDF URL","Description","Extra Credit"]
+    headers = ["Workout_Name","Workout_Page_URL","Focus","Difficulty",
+           "Works","PDF_URL","Description","Extra_Credit"]
     
     if darebee_file_exists:
         print("Darebee file found - checking for new workouts...")
         darebee = pd.read_csv(DAREBEE_FILE_NAME, sep = "\t")
-        print(darebee.head())
         workout_links_full = [DAREBEE_BASE_URL + wl for wl in workout_links]
-        not_in_df = pd.Series(workout_links_full).isin(darebee["Workout Page URL"])
+        not_in_df = pd.Series(workout_links_full).isin(darebee["Workout_Page_URL"])
         new_workouts = [wl for wl,nid in zip(workout_links, list(~not_in_df)) if nid]
-        print(len(new_workouts))
+        print(str(len(new_workouts)) + " new workouts found.")
         if len(new_workouts) != 0:
-            print(str(len(new_workouts)) + " new workouts found; gathering info...")
+            print("Gathering info...")
             new_workout_tuples = [get_workout_info(nw) for nw in new_workouts]
             new_workout_df = pd.DataFrame(new_workout_tuples, columns = headers)
-            print(new_workout_df)
             darebee = new_workout_df.append(darebee)
-        else:
-            print("No new workouts found.")
     else:
         print("No Darebee file found - creating new file...")
         workout_tuples = [get_workout_info(wl) for wl in workout_links]
