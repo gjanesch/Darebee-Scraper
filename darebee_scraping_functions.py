@@ -89,10 +89,14 @@ def create_update_workout_list():
             new_workout_tuples = [get_workout_info(nw) for nw in new_workouts]
             new_workout_df = pd.DataFrame(new_workout_tuples, columns = headers)
             darebee = new_workout_df.append(darebee)
+            update_pdf_collection(new_workout_df)
+
     else:
         print("No Darebee file found - creating new file...")
         workout_tuples = [get_workout_info(wl) for wl in workout_links]
         darebee = pd.DataFrame(workout_tuples, columns = headers)
+        set_up_workout_folders()
+        update_pdf_collection(darebee)
 
     darebee.to_csv(consts.DAREBEE_FILE_NAME, sep = consts.DAREBEE_FILE_SEP,
                    index = False)
@@ -114,3 +118,11 @@ def set_up_workout_folders():
         dir_name = "Difficulty " + str(x+1)
         if not os.path.exists("./Workout PDFs/" + dir_name):
             os.mkdir("./Workout PDFs/" + dir_name)
+
+
+def update_pdf_collection(df):
+    for _, row in df.iterrows():
+        pdf_name = re.search("workouts/(.*?)$", row["PDF_URL"]).group(1)
+        workout_file_path = "Workout PDFs/Difficulty " + str(row["Difficulty"]) + "/" + pdf_name
+        if not os.path.isfile(workout_file_path):
+            download_workout_pdf(row["PDF_URL"], workout_file_path)
